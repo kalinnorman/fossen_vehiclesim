@@ -213,6 +213,7 @@ def plot3D(simData,numDataPoints,FPS,filename,figNo):
                     
     # Title of plot
     ax.set_title('North-East-Down')
+    ax.set_aspect('equal')
     
     # Create the animation object
     ani = animation.FuncAnimation(fig, 

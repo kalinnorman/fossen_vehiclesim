@@ -31,8 +31,8 @@ def main():
         [nu, u_actual]  = vehicle.dynamics(eta,nu,u_actual,u_control,delta_t)
         eta = pvsl.attitudeEuler(eta,nu,delta_t)
 
-    # Change desired depth to 30 meters and run simulation for thirty more seconds
-    vehicle.ref_z = 10
+    # Change desired depth to 30 meters and run simulation
+    vehicle.ref_z = 30
     simdur2 = 240
     ts2 = np.arange(delta_t, simdur2+delta_t, delta_t) + ts1[-1]
     # Simulator for-loop
@@ -48,9 +48,9 @@ def main():
         [nu, u_actual]  = vehicle.dynamics(eta,nu,u_actual,u_control,delta_t)
         eta = pvsl.attitudeEuler(eta,nu,delta_t)
 
-    # Change desired heading to 180 degrees and run simulation for thirty more seconds
-    vehicle.ref_psi = 10
-    simdur3 = 60
+    # Change desired heading to 180 degrees and run simulation
+    vehicle.ref_psi = 180
+    simdur3 = 90
     ts3 = np.arange(delta_t, simdur3+delta_t, delta_t) + ts2[-1]
     # Simulator for-loop
     for _ in ts3:        
@@ -65,16 +65,36 @@ def main():
         [nu, u_actual]  = vehicle.dynamics(eta,nu,u_actual,u_control,delta_t)
         eta = pvsl.attitudeEuler(eta,nu,delta_t)
 
+    # Change desired depth to 0 meters (resurface) and run simulation
+    vehicle.ref_z = 0
+    simdur4 = 240
+    ts4 = np.arange(delta_t, simdur4+delta_t, delta_t) + ts3[-1]
+    # Simulator for-loop
+    for _ in ts4:        
+        # Vehicle specific control systems
+        u_control = vehicle.depthHeadingAutopilot(eta,nu,delta_t)             
+        
+        # Store simulation data in simData
+        signals = np.append( np.append( np.append(eta,nu),u_control), u_actual )
+        simData = np.vstack( [simData, signals] ) 
+
+        # Propagate vehicle and attitude dynamics
+        [nu, u_actual]  = vehicle.dynamics(eta,nu,u_actual,u_control,delta_t)
+        eta = pvsl.attitudeEuler(eta,nu,delta_t)
+
     # Store simulation time vector
-    simTime = np.vstack((ts1[:, None], ts2[:,None], ts3[:,None]))
+    simTime = np.vstack((ts1[:, None], ts2[:,None], ts3[:,None], ts4[:,None]))
 
     pvsl.plotVehicleStates(simTime, simData, 1)                    
     pvsl.plotControls(simTime, simData, vehicle, 2)
-    numDataPoints = 100                  # number of 3D data points
+    numDataPoints = 1000                  # number of 3D data points
     FPS = 10                            # frames per second (animated GIF)
     filename = '3D_animation.gif'       # data file for animated GIF
     pvsl.plot3D(simData, numDataPoints, FPS, filename, 3)
     plt.show()
+
+
+    # TODO save position, velocity, and maybe acceleration data (I currently believe that eta is the 6DOF position, and that nu is the velocity. I'm not sure if accurate acceleration is available anywhere...)
     return
 
 if __name__ == "__main__":
