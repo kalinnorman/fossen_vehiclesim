@@ -244,7 +244,7 @@ class remus100:
         self.theta_int = 0     # pitch angle integral state
         
 
-    def dynamics(self, eta, nu, u_actual, u_control, sampleTime):
+    def dynamics(self, eta, nu, u_actual, u_control, sampleTime, return_accel=False):
         """
         [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) integrates
         the AUV equations of motion using Euler's method.
@@ -396,7 +396,10 @@ class remus100:
         
         u_actual = np.array([ delta_r, delta_s, n ], float)
 
-        return nu, u_actual
+        if return_accel:
+            return nu, u_actual, nu_dot
+        else:
+            return nu, u_actual
 
 
     def stepInput(self, t):
